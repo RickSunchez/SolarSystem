@@ -1,0 +1,218 @@
+<meta charset="utf-8">
+
+<canvas></canvas>
+
+<script>
+    class SolarSystem {
+        constructor (context, radius) {
+            this.c = context;
+            this.width = 2 * radius;
+            this.height = 2 * radius;
+
+            this.cx = this.width / 2;
+            this.cy = this.height / 2;
+
+            this.radius = radius;
+            this.planets = [];
+
+            this.c.canvas.width = this.width;
+            this.c.canvas.height = this.height;
+
+            this.sun = new Planet(this.c, 5, 0);
+            this.timer = null
+
+            this.days = 0;
+        }
+
+        addPlanet(r, o, da) {
+            var p = new Planet(this.c, r, o, da);
+
+            this.planets.push(p);
+        }
+
+        draw() {
+            this.c.clearRect(0,0, this.width, this.height);
+            this.sun.draw();
+
+            for (let p of this.planets) p.draw();
+        }
+
+        daysCounter() {
+            var message = "Days: " + this.days;
+            this.c.font = "30pt Courier";
+            this.c.fillText(message, "20", "50")
+            this.days++;
+        }
+
+        run() {
+            this.timer = setInterval(()=>this.update(), 10)
+        }
+
+        update() {
+            this.draw();
+            this.daysCounter();
+            for (let p of this.planets) {
+                p.angle += p.da;
+                p.cx = this.cx + Math.cos(p.angle) * p.orbit
+                p.cy = this.cy + Math.sin(p.angle) * p.orbit
+            }
+        }
+    }
+
+    class Planet {
+        constructor (context, radius, orbit, da) {
+            this.c = context;
+
+            this.cx = this.c.canvas.width / 2 + orbit;
+            this.cy = this.c.canvas.height / 2;
+
+            this.radius = radius;
+            this.orbit = orbit;
+            this.angle = 0;
+            this.da = da;
+        }
+
+        calcDA(maxSystem) {
+            this.da = this
+        }
+
+        draw() {
+            this.c.beginPath();
+                this.c.arc(
+                    this.cx, this.cy,
+                    this.radius,
+                    0, 2*Math.PI,
+                    true);
+
+                this.c.fill()
+            this.c.closePath();
+        }
+    }
+
+    var canvas = document.querySelector("canvas");
+    var ctx = canvas.getContext("2d");
+
+    // SOURCE:
+    // #Name    | #Orbit (a.e.) | #Radius   | #Speed (days) | #Speed (radians)
+    // Sun      | 0             |           | 0
+    // 
+    // Mercury  | 0.387         | 0.38      | 88            | 0.0714
+    // Venus    | 0.723         | 0.95      | 225           | 0.0279
+    // Earth    | 1             | 1         | 365.25        | 0.0172
+    // Mars     | 1.523         | 0.53      | 687           | 0.0091
+    // Jupiter  | 5.202         | 11.2      | 11.86*365.25  | 0.0015
+    // Saturn   | 9.554         | 9.4       | 29.46*365.25  | 0.0006
+    // Uranus   | 19.191        | 3.9       | 84*365.25     |
+    // Neptune  | 30.109        | 3.8       | 165*365.25
+    // Pluto    | 39.439        | 0.24      | 248*365.25
+
+    Planets = [
+        {
+            "name": "Sun",
+            "orbit": 0,
+            "radius": 0,
+            "speed": {
+                "inDays": 0,
+                inRads(){ return 2*Math.PI / this.inDays }
+            }
+        },
+        {
+            "name": "Mercury",
+            "orbit": 0.387,
+            "radius": 0.38,
+            "speed": {
+                "inDays": 88,
+                inRads(){ return 2*Math.PI / this.inDays }
+            }
+        },
+        {
+            "name": "Venus",
+            "orbit": 0.723,
+            "radius": 0.95,
+            "speed": {
+                "inDays": 225,
+                inRads(){ return 2*Math.PI / this.inDays }
+            }
+        },
+        {
+            "name": "Earth",
+            "orbit": 1,
+            "radius": 1,
+            "speed": {
+                "inDays": 365.25,
+                inRads(){ return 2*Math.PI / this.inDays }
+            }
+        },
+        {
+            "name": "Mars",
+            "orbit": 1.523,
+            "radius": 0.53,
+            "speed": {
+                "inDays": 687,
+                inRads(){ return 2*Math.PI / this.inDays }
+            }
+        },
+        {
+            "name": "Jupiter",
+            "orbit": 5.202,
+            "radius": 11.2,
+            "speed": {
+                "inDays": 11.86*365.25,
+                inRads(){ return 2*Math.PI / this.inDays }
+            }
+        },
+        {
+            "name": "Saturn",
+            "orbit": 9.554,
+            "radius": 9.4,
+            "speed": {
+                "inDays": 29.46*365.25,
+                inRads(){ return 2*Math.PI / this.inDays }
+            }
+        },
+        {
+            "name": "Uranus",
+            "orbit": 19.191,
+            "radius": 3.9,
+            "speed": {
+                "inDays": 84*365.25,
+                inRads(){ return 2*Math.PI / this.inDays }
+            }
+        },
+        {
+            "name": "Neptune",
+            "orbit": 30.109,
+            "radius": 3.8,
+            "speed": {
+                "inDays": 165*365.25,
+                inRads(){ return 2*Math.PI / this.inDays }
+            }
+        },
+        {
+            "name": "Pluto",
+            "orbit": 39.439,
+            "radius": 0.24,
+            "speed": {
+                "inDays": 248*365.25,
+                inRads(){ return 2*Math.PI / this.inDays }
+            }
+        },
+    ]
+
+    var s = new SolarSystem(ctx, 300);
+    
+    var prevOrbit = 0,
+        pMargin = 5,
+        scale = 2;
+    for (let i=1; i<Planets.length; i++) {
+        let p = Planets[i];
+        let orbit = prevOrbit + p.radius*scale + 2*pMargin;
+        
+        s.addPlanet(p.radius*scale, orbit, p.speed.inRads());
+
+        prevOrbit = orbit + p.radius*scale + pMargin;
+    }
+
+    s.draw()
+    s.run()
+</script>
